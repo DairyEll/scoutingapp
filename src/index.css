@@ -365,3 +365,106 @@ input[type=number]::-webkit-outer-spin-button {
   text-align: center;
   border-radius: 0;
 }
+
+/* Add tab styling */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.tabs button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabs button:hover {
+  background: var(--accent);
+  color: var(--button-text);
+}
+
+.tabs button.active {
+  background: var(--accent);
+  color: var(--button-text);
+  font-weight: 500;
+}
+
+/* vertical tab buttons (changed to horizontal side-by-side) */
+.form-tabs {
+  display: inline-flex;      /* inline so it hugs content */
+  flex-direction: row;
+  gap: 4px;                  /* small gap so tabs are right next to each other */
+  position: sticky;
+  top: 20px;
+  align-items: center;
+  z-index: 1;
+}
+
+/* base tab style (unselected) */
+.form-tabs button {
+  min-width: 110px;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 12px;           /* small rounding for unselected tabs */
+  border: 1px solid var(--card); /* subtle outline matching main form color */
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, transform 120ms ease, box-shadow 140ms ease;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+/* slightly lift on hover so buttons read as interactive without going fully dark */
+.form-tabs button:hover {
+  background: rgba(0,0,0,0.04);
+  color: var(--text);
+  transform: translateY(-2px);
+}
+
+/* selected tab: pill / curved shape that visually "sits on" the form surface */
+.form-tabs button.active {
+  background: var(--card);      /* same surface colour as form */
+  color: var(--text);
+  box-shadow: 0 8px 24px rgba(16,24,40,0.08); /* soft elevated look */
+  border-color: var(--card);
+  border-radius: 9999px;        /* full pill / curved shape */
+  padding: 10px 20px;          /* a little larger so pill is obvious */
+  transform: translateY(-6px); /* lifts above neighbors */
+  z-index: 2;                  /* ensure it overlaps adjacent tabs visually */
+}
+
+/* keep the unselected tab slightly visible (no full black) */
+.form-tabs button:not(.active) {
+  opacity: 0.9;
+  background: transparent;
+}
+
+/* responsive: stack vertically on small screens */
+@media (max-width: 720px) {
+  .form-tabs {
+    flex-direction: column;
+    width: 100%;
+  }
+  .form-tabs button {
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  .form-tabs button.active {
+    border-radius: 12px;
+    transform: translateY(0);
+  }
+}
+
+/* focus state for accessibility */
+.form-tabs button:focus {
+  outline: 2px solid color-mix(in srgb, var(--card) 25%, transparent);
+  outline-offset: 2px;
+}

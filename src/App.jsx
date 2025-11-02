@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import ScoutForm from "./components/ScoutForm";
+import PitScoutForm from "./components/PitScoutForm";
 import SubmissionsList from "./components/SubmissionsList";
 import InstallPrompt from "./components/InstallPrompt";
 
 import "./index.css";
 
-const STORAGE_KEY = "scout_records_v1";
+const MATCH_STORAGE_KEY = "scout_records_v1";
+const PIT_STORAGE_KEY = "pit_scout_records_v1";
 
 export default function App() {
   const moon = (
@@ -21,9 +23,22 @@ export default function App() {
 
   const [loading, setLoading] = useState(false);
 
-  const [submissions, setSubmissions] = useState(() => {
+  // active form: 'match' or 'pit'
+  const [activeForm, setActiveForm] = useState("match");
+
+  // match submissions
+  const [matchSubmissions, setMatchSubmissions] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      return JSON.parse(localStorage.getItem(MATCH_STORAGE_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  // pit submissions
+  const [pitSubmissions, setPitSubmissions] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(PIT_STORAGE_KEY) || "[]");
     } catch {
       return [];
     }
@@ -46,29 +61,49 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions));
+      localStorage.setItem(MATCH_STORAGE_KEY, JSON.stringify(matchSubmissions));
     } catch {}
-  }, [submissions]);
+  }, [matchSubmissions]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(PIT_STORAGE_KEY, JSON.stringify(pitSubmissions));
+    } catch {}
+  }, [pitSubmissions]);
 
   const toggleDark = () => {
     setDark((d) => !d);
   };
 
   const handleAdd = (entry) => {
-    setSubmissions((s) => [entry, ...s]);
+    if (activeForm === "match") {
+      setMatchSubmissions((s) => [entry, ...s]);
+    } else {
+      setPitSubmissions((s) => [entry, ...s]);
+    }
   };
 
   const handleDelete = (idx) => {
-    setSubmissions((s) => s.filter((_, index) => index !== idx));
+    if (activeForm === "match") {
+      setMatchSubmissions((s) => s.filter((_, index) => index !== idx));
+    } else {
+      setPitSubmissions((s) => s.filter((_, index) => index !== idx));
+    }
   };
 
   const handleClear = () => {
     if (!window.confirm("Clear all saved submissions?")) return;
-    setSubmissions([]);
+    if (activeForm === "match") {
+      setMatchSubmissions([]);
+    } else {
+      setPitSubmissions([]);
+    }
   };
 
   const handleExport = async () => {
     try {
+      const submissions = activeForm === "match" ? matchSubmissions : pitSubmissions;
+
       console.log("Submitting:", submissions);
 
       setLoading(true);
@@ -86,7 +121,8 @@ export default function App() {
 
       if (data.result === "success") {
         alert("Scouting report saved!");
-        setSubmissions([]);
+        if (activeForm === "match") setMatchSubmissions([]);
+        else setPitSubmissions([]);
       } else {
         console.error("Error when uploading:", data.error);
         alert("Error when uploading: " + data.error);
@@ -97,6 +133,9 @@ export default function App() {
       alert("An unexpected error occurred: " + err.message);
     }
   };
+
+  // choose which submissions list to show
+  const currentSubmissions = activeForm === "match" ? matchSubmissions : pitSubmissions;
 
   return (
     <div className="app-root">
@@ -117,16 +156,43 @@ export default function App() {
         </button>
       </header>
 
+      {/* wrapper now has a left sidebar for the tabs and a form content area */}
       <div className="wrapper">
-        <ScoutForm onSubmit={handleAdd} />
+        <aside className="form-sidebar">
+          <div className="form-tabs">
+            <button
+              type="button"
+              onClick={() => setActiveForm("match")}
+              className={activeForm === "match" ? "active" : ""}
+            >
+              Match Scouting
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveForm("pit")}
+              className={activeForm === "pit" ? "active" : ""}
+            >
+              Pit Scouting
+            </button>
+          </div>
+        </aside>
+
+        <main className="form-content">
+          {activeForm === "match" ? (
+            <ScoutForm onSubmit={handleAdd} />
+          ) : (
+            <PitScoutForm onSubmit={handleAdd} />
+          )}
+        </main>
       </div>
 
       <SubmissionsList
-        submissions={submissions}
+        submissions={currentSubmissions}
         onClear={handleClear}
         onExport={handleExport}
         onDelete={handleDelete}
         isLoading={loading}
+        isPit={activeForm === 'pit'}
       />
     </div>
   );

@@ -6,6 +6,7 @@ export default function SubmissionsList({
   onExport,
   onDelete,
   isLoading,
+  isPit = false, // <-- new prop: true for pit scouting so Match/Alliance columns are hidden
 }) {
   const [modalState, setModalState] = useState({
     display: false,
@@ -51,7 +52,7 @@ export default function SubmissionsList({
     <section className="submissions">
       {modalState.display && (
         <div className="modal">
-          <div class="header">
+          <div className="header">
             <h3>Submission #{modalState.idx}</h3>
             <button onClick={handleClose}>✕</button>
           </div>
@@ -70,7 +71,6 @@ export default function SubmissionsList({
           <button onClick={onClear} disabled={submissions.length === 0}>
             {trash_can}
           </button>
-          {/* <button onClick={downloadCSV} disabled={submissions.length === 0}>Export CSV</button> */}
           <button
             onClick={onExport}
             disabled={submissions.length === 0 || isLoading}
@@ -84,8 +84,9 @@ export default function SubmissionsList({
       <div className="submissions-grid">
         <div className="header">
           <p>Team #</p>
-          <p>Match #</p>
-          <p>Alliance</p>
+          {/* only show Match and Alliance for match scouting */}
+          {!isPit && <p>Match #</p>}
+          {!isPit && <p>Alliance</p>}
           <p>Time</p>
         </div>
         <div className="items">
@@ -96,8 +97,8 @@ export default function SubmissionsList({
               className="item"
             >
               <p>{s.team}</p>
-              <p className="muted">{s.match}</p>
-              <p className="muted">{s.alliance}</p>
+              {!isPit && <p className="muted">{s.match}</p>}
+              {!isPit && <p className="muted">{s.alliance}</p>}
               <p className="muted">
                 {new Date(s.timestamp).toLocaleTimeString()}
               </p>
